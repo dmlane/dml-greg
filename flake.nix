@@ -41,6 +41,9 @@
             dependencies = with python.pkgs; [
               feedparser
               requests
+              eyed3
+              beautifulsoup4
+              lxml
             ];
 
             doCheck = false;

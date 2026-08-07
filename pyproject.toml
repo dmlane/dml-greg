@@ -30,3 +30,8 @@ build-backend = "uv_build"
 [tool.uv.build-backend]
 module-name = "greg"
 module-root = ""
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0",
+]
