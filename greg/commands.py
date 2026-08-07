@@ -151,6 +151,15 @@ def sync(args):
     """
     import operator
     session = c.Session(args)
+
+    # Clear failed log for current sync
+    failed_log = os.path.join(session.data_dir, "failed")
+    if os.path.exists(failed_log):
+        try:
+            os.remove(failed_log)
+        except OSError as e:
+            print("Error clearing failure log: {}".format(e),
+                  file=sys.stderr, flush=True)
     if "all" in args["names"]:
         targetfeeds = session.list_feeds()
     else:
@@ -230,6 +239,16 @@ def download(args):
     Implement the 'greg download' command
     """
     session = c.Session(args)
+
+    # Clear failed log for current download
+    failed_log = os.path.join(session.data_dir, "failed")
+    if os.path.exists(failed_log):
+        try:
+            os.remove(failed_log)
+        except OSError as e:
+            print("Error clearing failure log: {}".format(e),
+                  file=sys.stderr, flush=True)
+
     issues = aux.parse_for_download(args)
     if issues == ['']:
         sys.exit(

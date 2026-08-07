@@ -49,6 +49,7 @@ class Session():
         self.feeds.read(self.data_filename)
         self.config = configparser.ConfigParser()
         self.config.read([config_filename_global, self.config_filename_user])
+        self.failed_episodes = set()
 
     def list_feeds(self):
         """
@@ -330,14 +331,35 @@ class Feed():
                 condition = aux.filtercond(placeholders)
                 if condition:
                     print("Downloading {} -- {}".format(title, podname))
-                    aux.download_handler(self, placeholders)
-                    if self.willtag:
-                        aux.tag(placeholders)
-                    downloaded = True
+                    try:
+                        aux.download_handler(self, placeholders)
+                        downloaded = True
+                    except Exception as e:
+                        print("Failed to download {} -- {}: {}".format(title, podname, e),
+                              file=sys.stderr, flush=True)
+                        downloaded = False
+                        try:
+                            if (self.name, placeholders.link) not in self.session.failed_episodes:
+                                failed_log = os.path.join(self.session.data_dir, "failed")
+                                with open(failed_log, 'a') as f:
+                                    f.write("{}\t{}\t{}\n".format(
+                                        self.name, title, placeholders.link))
+                                self.session.failed_episodes.add((self.name, placeholders.link))
+                        except OSError as e_log:
+                            print("Error writing to failure log: {}".format(e_log),
+                                  file=sys.stderr, flush=True)
+
+                    if downloaded and self.willtag:
+                        try:
+                            aux.tag(placeholders)
+                        except Exception as e:
+                            print("Failed to tag {} -- {}: {}".format(title, podname, e),
+                                  file=sys.stderr, flush=True)
                 else:
                     print("Skipping {} -- {}".format(title, podname))
                     downloaded = False
-                if self.info:
+
+                if (downloaded or not condition) and self.info:
                     with open(self.info, 'a') as current:
                         # We write to file this often to ensure that
                         # downloaded entries count as downloaded.
