@@ -27,6 +27,7 @@ import time
 import unicodedata
 import string
 import json
+import errno
 
 from importlib.resources import files
 import feedparser
@@ -236,17 +237,28 @@ def download_handler(feed, placeholders):
     """
     value = feed.retrieve_config('downloadhandler', 'greg')
     if value == 'greg':
-        with requests.get(placeholders.link) as fin:
-            # check if request went ok
-            fin.raise_for_status()
-            # check if fullpath allready exists
-            while os.path.isfile(placeholders.fullpath):
-                placeholders.filename = placeholders.filename + '_'
-                placeholders.fullpath = os.path.join(
-                    placeholders.directory, placeholders.filename)
-            # write content to file
-            with open(placeholders.fullpath,'wb') as fout:
-                fout.write(fin.content)
+        try:
+            with requests.get(placeholders.link, stream=True, timeout=30) as fin:
+                # check if request went ok
+                fin.raise_for_status()
+                # check if fullpath already exists
+                while os.path.isfile(placeholders.fullpath):
+                    placeholders.filename = placeholders.filename + '_'
+                    placeholders.fullpath = os.path.join(
+                        placeholders.directory, placeholders.filename)
+                # write content to file
+                with open(placeholders.fullpath, 'wb') as fout:
+                    for chunk in fin.iter_content(chunk_size=8192):
+                        if chunk:
+                            fout.write(chunk)
+        except OSError as e:
+            if e.errno == errno.ENOSPC:
+                try:
+                    if os.path.isfile(placeholders.fullpath):
+                        os.remove(placeholders.fullpath)
+                except Exception:
+                    pass
+            raise
     else:
         value_list = shlex.split(value)
         instruction_list = [placeholders.substitute(part) for

@@ -30,6 +30,7 @@ import os.path
 import sys
 import time
 import json
+import errno
 from importlib.resources import files
 from urllib.parse import urlparse
 from urllib.error import URLError
@@ -348,6 +349,9 @@ class Feed():
                         except OSError as e_log:
                             print("Error writing to failure log: {}".format(e_log),
                                   file=sys.stderr, flush=True)
+
+                        if isinstance(e, OSError) and e.errno == errno.ENOSPC:
+                            raise
 
                     if downloaded and self.willtag:
                         try:

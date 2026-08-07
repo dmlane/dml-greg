@@ -21,6 +21,7 @@ import json
 import os.path
 import pickle
 import sys
+import errno
 
 import greg.classes as c
 import greg.aux_functions as aux
@@ -170,35 +171,40 @@ def sync(args):
                       .format(name), file=sys.stderr, flush=True)
             else:
                 targetfeeds.append(name)
-    for target in targetfeeds:
-        feed = c.Feed(session, target, None)
-        if not feed.wentwrong:
-            try:
-                title = feed.podcast.target.title
-            except AttributeError:
-                title = target
-            print("Checking", title, end="...\n")
-            currentdate, stop = feed.how_many()
-            entrycounter = 0
-            entries_to_download = feed.podcast.entries
-            for entry in entries_to_download:
-                feed.fix_linkdate(entry)
-            # Sort entries_to_download, but only if you want to download as
-            # many as there are
-            if stop >= len(entries_to_download):
-                entries_to_download.sort(key=operator.attrgetter("linkdate"),
-                                         reverse=False)
-            for entry in entries_to_download:
-                if entry.linkdate > currentdate:
-                    downloaded = feed.download_entry(entry)
-                    entrycounter += downloaded
-                if entrycounter >= stop:
-                    break
-            print("Done")
-        else:
-            msg = ''.join(["I cannot sync ", target, " just now: ",
-                feed.wentwrong])
-            print(msg, file=sys.stderr, flush=True)
+    try:
+        for target in targetfeeds:
+            feed = c.Feed(session, target, None)
+            if not feed.wentwrong:
+                try:
+                    title = feed.podcast.target.title
+                except AttributeError:
+                    title = target
+                print("Checking", title, end="...\n")
+                currentdate, stop = feed.how_many()
+                entrycounter = 0
+                entries_to_download = feed.podcast.entries
+                for entry in entries_to_download:
+                    feed.fix_linkdate(entry)
+                # Sort entries_to_download, but only if you want to download as
+                # many as there are
+                if stop >= len(entries_to_download):
+                    entries_to_download.sort(key=operator.attrgetter("linkdate"),
+                                             reverse=False)
+                for entry in entries_to_download:
+                    if entry.linkdate > currentdate:
+                        downloaded = feed.download_entry(entry)
+                        entrycounter += downloaded
+                    if entrycounter >= stop:
+                        break
+                print("Done")
+            else:
+                msg = ''.join(["I cannot sync ", target, " just now: ",
+                    feed.wentwrong])
+                print(msg, file=sys.stderr, flush=True)
+    except OSError as e:
+        if e.errno == errno.ENOSPC:
+            sys.exit("Sync aborted: No space left on device")
+        raise
 
 
 def check(args):
@@ -266,9 +272,14 @@ def download(args):
         sys.exit((
             "... something went wrong."
             "Are you sure your last ""greg check"" went well?"))
-    for number in issues:
-        entry = dump[1].entries[eval(number)]
-        feed.info = []
-        feed.entrylinks = []
-        feed.fix_linkdate(entry)
-        feed.download_entry(entry)
+    try:
+        for number in issues:
+            entry = dump[1].entries[eval(number)]
+            feed.info = []
+            feed.entrylinks = []
+            feed.fix_linkdate(entry)
+            feed.download_entry(entry)
+    except OSError as e:
+        if e.errno == errno.ENOSPC:
+            sys.exit("Download aborted: No space left on device")
+        raise
