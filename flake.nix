@@ -23,7 +23,7 @@
             inherit system;
           };
 
-          python = pkgs.python312;
+          python = pkgs.python313;
         in
         {
           default = python.pkgs.buildPythonApplication {
