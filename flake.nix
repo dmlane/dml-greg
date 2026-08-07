@@ -24,11 +24,13 @@
           };
 
           python = pkgs.python313;
+
+          pyproject = builtins.fromTOML (builtins.readFile ./pyproject.toml);
         in
         {
           default = python.pkgs.buildPythonApplication {
-            pname = "greg";
-            version = "0.4.8";
+            pname = pyproject.project.name;
+            version = pyproject.project.version;
 
             src = ./.;
 
