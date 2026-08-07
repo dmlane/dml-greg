@@ -30,15 +30,14 @@ import os.path
 import sys
 import time
 import json
-from pkg_resources import resource_filename
+from importlib.resources import files
 from urllib.parse import urlparse
 from urllib.error import URLError
 from warnings import warn
 
 import greg.aux_functions as aux
 
-config_filename_global = resource_filename(__name__, 'data/greg.conf')
-
+config_filename_global = str(files("greg").joinpath("data", "greg.conf"))
 
 class Session():
     def __init__(self, args):

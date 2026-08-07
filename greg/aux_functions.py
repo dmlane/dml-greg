@@ -28,7 +28,7 @@ import unicodedata
 import string
 import json
 
-from pkg_resources import resource_filename
+from importlib.resources import files
 import feedparser
 import requests
 
@@ -44,8 +44,7 @@ try:  # beautifulsoup4 is an optional dependency
 except ImportError:
     beautifulsoupexists = False
 
-config_filename_global = resource_filename(__name__, 'data/greg.conf')
-
+config_filename_global = str(files("greg").joinpath("data", "greg.conf"))
 # Registering a custom date handler for feedparser
 
 _feedburner_date_pattern = re.compile(

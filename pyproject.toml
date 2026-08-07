@@ -1,0 +1,35 @@
+[project]
+name = "greg"
+version = "0.4.8"
+description = "A command-line podcast aggregator"
+authors = [
+    { name = "Manolo Martínez", email = "manolo@austrohungaro.com" },
+]
+license = "GPL-3.0-only"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "feedparser",
+    "requests",
+	"eyed3",
+	"bs4"
+]
+
+[project.urls]
+Homepage = "https://github.com/manolomartinez/greg"
+Repository = "https://github.com/manolomartinez/greg"
+
+[project.scripts]
+greg = "greg.parser:main"
+
+[project.optional-dependencies]
+tagging = [
+    "eyeD3",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.0,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "greg"
+module-root = ""
