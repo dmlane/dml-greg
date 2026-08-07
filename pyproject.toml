@@ -2,6 +2,7 @@
 name = "greg"
 version = "0.4.8"
 description = "A command-line podcast aggregator"
+readme = "README.md"
 authors = [
     { name = "Manolo Martínez", email = "manolo@austrohungaro.com" },
 ]
@@ -10,24 +11,20 @@ requires-python = ">=3.13,<3.14"
 dependencies = [
     "feedparser",
     "requests",
-	"eyed3",
-	"bs4"
+	"eyeD3",
+	"beautifulsoup4", 
+	"lxml"
 ]
+
+[project.scripts]
+greg = "greg.parser:main"
 
 [project.urls]
 Homepage = "https://github.com/manolomartinez/greg"
 Repository = "https://github.com/manolomartinez/greg"
 
-[project.scripts]
-greg = "greg.parser:main"
-
-[project.optional-dependencies]
-tagging = [
-    "eyeD3",
-]
-
 [build-system]
-requires = ["uv_build>=0.11.0,<0.13.0"]
+requires = ["uv-build"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
